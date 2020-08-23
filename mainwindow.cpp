@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "DB_Manager.h"
 #include "central_panel.h"
 #include "QAction"
 #include "QMenuBar"
@@ -8,6 +9,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    DB_Manager::instance();
     c_panel = new central_panel();
     createFolder();
     createActions();
@@ -59,6 +61,7 @@ void MainWindow::createMenus()
 
 void MainWindow::newImage()
 {
+
 
 }
 

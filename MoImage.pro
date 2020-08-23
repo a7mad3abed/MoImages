@@ -16,13 +16,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    DB_Manager.cpp \
     central_panel.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    sqlite3.c
 
 HEADERS += \
+    DB_Manager.h \
     central_panel.h \
-    mainwindow.h
+    mainwindow.h \
+    sqlite3.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
