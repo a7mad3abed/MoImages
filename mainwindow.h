@@ -26,6 +26,7 @@ private slots:
     void deleteImage(QString&);
 
 private:
+    void createFolder();
     void createActions();
     void createMenus();
 

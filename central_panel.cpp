@@ -16,12 +16,10 @@ central_panel::central_panel(QWidget *parent) : QWidget(parent)
     QHBoxLayout *upperLayout = new QHBoxLayout();
     QHBoxLayout *lowerLayout = new QHBoxLayout();
     QVBoxLayout *leftLayout = new QVBoxLayout();
+    upperLayout->addLayout(leftLayout);
     upperLayout->addWidget(image_label);
     lowerLayout->addWidget(search_entry);
     mainLayout->addLayout(upperLayout);
     mainLayout->addLayout(lowerLayout);
     setLayout(mainLayout);
-
-
-
 }
