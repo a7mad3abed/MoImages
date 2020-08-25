@@ -117,15 +117,20 @@ std::vector<Result> DB_Manager::retrieve_results() const
 
 }
 
+// here i had problems because i left the vector results to pushback the results. Therefore i had everytime more than one result in the vector
+// although there was only one result in db. I solved the problem by initializing a new vector within the function geturl() to make the vector
+// a local variable.
+
 std::string DB_Manager::getUrl(const char* title)
 {
     std::string url = "";
     sqlite3_stmt* stmt;
-    const char* query = "select from image where name=?";
+    const char* query = "select * from images where name=?";
 
     sqlite3_prepare_v2(db, query, -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, title, -1, nullptr);
 
+    std::vector<Result> innerResult;
     Result newResult;
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
@@ -143,10 +148,12 @@ std::string DB_Manager::getUrl(const char* title)
             if(i == 2) newResult.address = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
             if (i == 3) newResult.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
         }
-        results.push_back(newResult);
+        innerResult.push_back(newResult);
     }
 
-    if(results.size() == 1) url = results[0].address;
+    if(innerResult.size() == 1) url = innerResult[0].address;
+    if(innerResult.size() < 1) url = "failed";
+    if(innerResult.size() > 1) url = "more than one";
 
     sqlite3_finalize(stmt);
     return url;

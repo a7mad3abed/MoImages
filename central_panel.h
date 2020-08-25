@@ -18,8 +18,9 @@ public:
     explicit central_panel(QWidget *parent = nullptr);
 
 private:
+    void searchImage();
 private:
-    QPixmap m_image;
+    //QPixmap m_image;
     QLabel *image_label;
     QLineEdit *search_entry;
 

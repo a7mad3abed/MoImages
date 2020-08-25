@@ -4,7 +4,11 @@
 #include "QAction"
 #include "QMenuBar"
 #include "QDir"
+#include "QFile"
+#include "QFileInfo"
 #include "QtDebug"
+#include "QFileDialog"
+#include "QInputDialog"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -61,7 +65,32 @@ void MainWindow::createMenus()
 
 void MainWindow::newImage()
 {
+    bool ok;
+    QString newEntry = QInputDialog::getText(this, tr("QInputDialog::getText()"), tr("Enter name for Image"), QLineEdit::Normal, QDir::home().dirName(), &ok);
+    if(ok && !newEntry.isEmpty())
+    {
+        QString imageName = QFileDialog::getOpenFileName(this, "open image", "my images", "Image Files (*.png *.jpg *.bmp)" );
+        QFileInfo info(imageName);
+        QString imageNameOnly = info.fileName();
+        if(imageName != "")
+        {
+            QString current = QDir().currentPath();
+            current.append("/my images/");
+            current.append(imageNameOnly);
+            qDebug() << current;
+            if(QFile::exists(current))
+            {
+                qDebug() << "it exists";
+            }
+            else
+            {
+                QFile::copy(imageName, current);
+                DB_Manager::instance().add_record(newEntry.toStdString().c_str(), current.toStdString().c_str());
 
+            }
+
+        }
+    }
 
 }
 
