@@ -1,6 +1,6 @@
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets sql
 
 CONFIG += c++11
 
@@ -19,14 +19,12 @@ SOURCES += \
     DB_Manager.cpp \
     central_panel.cpp \
     main.cpp \
-    mainwindow.cpp \
-    sqlite3.c
+    mainwindow.cpp
 
 HEADERS += \
     DB_Manager.h \
     central_panel.h \
-    mainwindow.h \
-    sqlite3.h
+    mainwindow.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

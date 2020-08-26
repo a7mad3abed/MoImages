@@ -41,12 +41,12 @@ void MainWindow::createActions()
 void MainWindow::createFolder()
 {
     QDir dir;
-    if(dir.exists("my Images"))
+    if(dir.exists("my_images"))
     {
         qDebug() << "Folder already exists";
     }
 
-    if(dir.mkdir("my Images"))
+    if(dir.mkdir("my_images"))
     {
         qDebug() << "Folder successfully created";
     }
@@ -69,15 +69,14 @@ void MainWindow::newImage()
     QString newEntry = QInputDialog::getText(this, tr("QInputDialog::getText()"), tr("Enter name for Image"), QLineEdit::Normal, QDir::home().dirName(), &ok);
     if(ok && !newEntry.isEmpty())
     {
-        QString imageName = QFileDialog::getOpenFileName(this, "open image", "my images", "Image Files (*.png *.jpg *.bmp)" );
+        QString imageName = QFileDialog::getOpenFileName(this, "open image", "my_images", "Image Files (*.png *.jpg *.jpeg *.bmp)" );
         QFileInfo info(imageName);
         QString imageNameOnly = info.fileName();
         if(imageName != "")
         {
             QString current = QDir().currentPath();
-            current.append("/my images/");
+            current.append("/my_images/");
             current.append(imageNameOnly);
-            qDebug() << current;
             if(QFile::exists(current))
             {
                 qDebug() << "it exists";

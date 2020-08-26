@@ -1,4 +1,5 @@
 #include "DB_Manager.h"
+#include "QDebug"
 
 DB_Manager::DB_Manager()
 {
@@ -7,112 +8,113 @@ DB_Manager::DB_Manager()
 
 DB_Manager::~DB_Manager()
 {
-    sqlite3_close(db);
+    db.close();
 }
 
 
 bool DB_Manager::init_db()
 {
-    if ((sqlite3_open("MoImage.db", &db)) != SQLITE_OK) {
-        return false;
+    const QString DRIVER("QSQLITE");
+    if(QSqlDatabase::isDriverAvailable(DRIVER))
+    {
+        db = QSqlDatabase::addDatabase(DRIVER);
+        db.setDatabaseName("MoImageDB");
+    }
+
+    if (!db.open()) {
+        qWarning() << "ERROR: " << db.lastError();
     }
 
 
-    if (init_table() == SQLITE_DONE)
+    if (init_table())
     {
         return true;
     } else return false;
 }
 
-int DB_Manager::init_table() const
+bool DB_Manager::init_table() const
 {
-    int rc = 0;
-    sqlite3_stmt* stmt;
-    const char* zSql = "CREATE TABLE if not exists images (\
+    QSqlQuery query ( "CREATE TABLE if not exists images (\
                         id INTEGER PRIMARY KEY,\
                         name TEXT UNIQUE NOT NULL,\
                         address TEXT,\
-                        Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);";
-    sqlite3_prepare_v2(db, zSql, -1, &stmt, 0);
-    rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    return rc;
+                        Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);");
+    if(!query.isActive())
+    {
+        qWarning() << "ERROR: " << query.lastError().text();
+        return false;
+    }
+    return true;
 }
 
-int DB_Manager::add_record(const char *name, const char *address) const
+bool DB_Manager::add_record(const char *name, const char *address) const
 {
-    const char* zSql = "insert into images (name, address) values (?, ?);";
-    sqlite3_stmt* stmt;
-    int rc = 0;
+    QSqlQuery query;
+    query.prepare( "insert into images (name, address) values ((:name), (:address));");
+    query.bindValue(":name", name);
+    query.bindValue(":address", address);
 
-    sqlite3_prepare_v2(db, zSql, -1, &stmt, 0);
-    sqlite3_bind_text(stmt, 1, name, -1, nullptr);
-    sqlite3_bind_text(stmt, 2, address, -1, nullptr);
-    rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    return rc;
+    if(!query.exec())
+    {
+        qWarning() << "ERROR" << query.lastError().text();
+        return false;
+    }
+    return true;
 }
 
-int DB_Manager::remove_record(const char* name)
+bool DB_Manager::remove_record(const char* name)
 {
-    const char* zSql = "DELETE FROM images WHERE name=?";
-    sqlite3_stmt* stmt;
-    int rc = 0;
+    QSqlQuery query;
+    query.prepare("DELETE FROM images WHERE name=?");
+    query.addBindValue(name);
+
+    if(!query.exec())
+    {
+        qWarning() << "ERROR" << query.lastError().text();
+        return false;
+    }
+    return true;
 	
-    sqlite3_prepare_v2(db, zSql, -1, &stmt, 0);
-    sqlite3_bind_text(stmt, 1, name, -1, nullptr);
-
-    rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    return rc;
 }
 
 
 
 
-int DB_Manager::clean_db() const
+bool DB_Manager::clean_db() const
 {
-    sqlite3_stmt* stmt;
-    int rc = 0;
-    const char* zSql = "DROP TABLE IF EXISTS Learn_Text;";
-    sqlite3_prepare_v2(db, zSql, -1, &stmt, 0);
-    rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    return rc;
+    QSqlQuery query;
+    query.prepare("DROP TABLE IF EXISTS Learn_Text;");
+
+    if(!query.exec())
+    {
+        qWarning() << "ERROR" << query.lastError().text();
+        return false;
+    }
+    return true;
 }
 
 
 
 std::vector<Result> DB_Manager::retrieve_results() const
 {
-    sqlite3_stmt* stmt;
+    QSqlQuery query;
+    query.prepare("select * from images");
+    query.exec();
+
     std::vector<Result> results;
 
-    const char* zSql = "select * from images;";
 
 
-    sqlite3_prepare_v2(db, zSql, -1, &stmt, nullptr);
-
-    while (sqlite3_step(stmt) == SQLITE_ROW)
+    while (query.next())
     {
         Result newResult;
-        for (auto i = 0; i < sqlite3_column_count(stmt); i++)
-        {
-
-            if (i == 0)
-            {
-                newResult.id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-            }
-            if (i == 1)
-            {
-                newResult.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-            }
-            if(i == 2) newResult.address = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-            if (i == 3) newResult.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-        }
-        results.push_back(newResult);
-
+    newResult.id = query.value(0).toInt();
+    newResult.name = query.value(1).toString().toStdString().c_str();
+    newResult.address = query.value(2).toString().toStdString().c_str();
+    newResult.date =query.value(3).toString().toStdString().c_str();
+    results.push_back(newResult);
     }
+
     return results;
 
 }
@@ -124,38 +126,25 @@ std::vector<Result> DB_Manager::retrieve_results() const
 std::string DB_Manager::getUrl(const char* title)
 {
     std::string url = "";
-    sqlite3_stmt* stmt;
-    const char* query = "select * from images where name=?";
 
-    sqlite3_prepare_v2(db, query, -1, &stmt, 0);
-    sqlite3_bind_text(stmt, 1, title, -1, nullptr);
+    QSqlQuery query;
+    query.prepare("select * from images where name= (:name)");
+    query.bindValue(":name", title);
+
+    if(!query.exec()) qDebug() << "exex not possible";
+
+    //query.first();
+    //qDebug() << query.value(1).toString();
 
     std::vector<Result> innerResult;
     Result newResult;
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-        for (auto i = 0; i < sqlite3_column_count(stmt); i++)
-        {
 
-            if (i == 0)
-            {
-                newResult.id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-            }
-            if (i == 1)
-            {
-                newResult.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-            }
-            if(i == 2) newResult.address = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-            if (i == 3) newResult.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
-        }
-        innerResult.push_back(newResult);
-    }
 
-    if(innerResult.size() == 1) url = innerResult[0].address;
-    if(innerResult.size() < 1) url = "failed";
-    if(innerResult.size() > 1) url = "more than one";
+    query.first();
+    url = query.value(2).toString().toStdString();
 
-    sqlite3_finalize(stmt);
+    qDebug() << url.c_str();
+
     return url;
 }
 

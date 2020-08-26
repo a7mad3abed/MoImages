@@ -30,9 +30,8 @@ central_panel::central_panel(QWidget *parent) : QWidget(parent)
 void central_panel::searchImage()
 {
     std::string url = DB_Manager::instance().getUrl(search_entry->text().toStdString().c_str());
-    qDebug() << url.c_str();
     QPixmap *m_image = new QPixmap(QString(url.c_str()));
-    image_label->setPixmap(QPixmap(m_image->scaled(500,500)));
+    image_label->setPixmap(m_image->scaled(500,500));
     search_entry->clear();
 
 }
